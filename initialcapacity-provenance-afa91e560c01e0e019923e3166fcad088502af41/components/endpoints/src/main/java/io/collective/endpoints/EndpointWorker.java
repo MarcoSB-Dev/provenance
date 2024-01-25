@@ -1,7 +1,11 @@
 package io.collective.endpoints;
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import io.collective.articles.ArticleDataGateway;
+import io.collective.articles.ArticleInfo;
 import io.collective.restsupport.RestTemplate;
+import io.collective.rss.Item;
+import io.collective.rss.RSS;
 import io.collective.workflow.Worker;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -30,9 +34,18 @@ public class EndpointWorker implements Worker<EndpointTask> {
         String response = template.get(task.getEndpoint(), task.getAccept());
         gateway.clear();
 
-        { // todo - map rss results to an article infos collection and save articles infos
-          // to the article gateway
+        // todo - map rss results to an article infos collection and save articles infos
+        // to the article gateway
 
+        // Parse the RSS feed
+        RSS rss = new XmlMapper().readValue(response, RSS.class);
+
+        // Convert each Item to an ArticleInfo and save it to the gateway
+        int id = 1;
+        for (Item item : rss.getChannel().getItem()) {
+            ArticleInfo article = new ArticleInfo(id, item.getTitle());
+            gateway.save(item.getTitle());
         }
+
     }
 }

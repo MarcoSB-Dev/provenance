@@ -22,4 +22,8 @@ public class ArticleRecord {
     public boolean isAvailable() {
         return available;
     }
+    
+    public ArticleInfo toInfo() {
+        return new ArticleInfo(this.id, this.title);
+    }
 }

@@ -30,7 +30,8 @@ public class EndpointWorker implements Worker<EndpointTask> {
         String response = template.get(task.getEndpoint(), task.getAccept());
         gateway.clear();
 
-        { // todo - map rss results to an article infos collection and save articles infos to the article gateway
+        { // todo - map rss results to an article infos collection and save articles infos
+          // to the article gateway
 
         }
     }

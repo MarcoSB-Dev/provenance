@@ -4,28 +4,45 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.collective.articles.ArticleDataGateway;
 import io.collective.articles.ArticleRecord;
 import io.collective.articles.ArticlesController;
+import io.collective.endpoints.EndpointDataGateway;
+import io.collective.endpoints.EndpointTask;
+import io.collective.endpoints.EndpointWorkFinder;
+import io.collective.endpoints.EndpointWorker;
 import io.collective.restsupport.BasicApp;
 import io.collective.restsupport.NoopController;
+import io.collective.restsupport.RestTemplate;
+import io.collective.workflow.WorkFinder;
+import io.collective.workflow.WorkScheduler;
+import io.collective.workflow.Worker;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.TimeZone;
 
-
 public class App extends BasicApp {
     private static ArticleDataGateway articleDataGateway = new ArticleDataGateway(List.of(
             new ArticleRecord(10101, "Programming Languages InfoQ Trends Report - October 2019 4", true),
-            new ArticleRecord(10106, "Ryan Kitchens on Learning from Incidents at Netflix, the Role of SRE, and Sociotechnical Systems", true)
-    ));
+            new ArticleRecord(10106,
+                    "Ryan Kitchens on Learning from Incidents at Netflix, the Role of SRE, and Sociotechnical Systems",
+                    true)));
 
     @Override
     public void start() {
         super.start();
 
-        { // todo - start the endpoint worker
+        // todo - start the endpoint worker
 
-        }
+        RestTemplate template = new RestTemplate();
+        ArticleDataGateway articleGateway = new ArticleDataGateway();
+        Worker<EndpointTask> worker = new EndpointWorker(template, articleGateway);
+
+        EndpointDataGateway endpointGateway = new EndpointDataGateway();
+        WorkFinder<EndpointTask> finder = new EndpointWorkFinder(endpointGateway);
+
+        List<Worker<EndpointTask>> workers = List.of(worker);
+        WorkScheduler<EndpointTask> scheduler = new WorkScheduler<>(finder, workers, 300);
+        scheduler.start();
     }
 
     public App(int port) {
